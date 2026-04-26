@@ -356,11 +356,7 @@ function KaruselSchedule() {
                     </span>
                   )}
                 </div>
-                {show.desc && (
-                  <p className="text-xs mt-1 leading-relaxed line-clamp-2" style={{ color: isPast ? "#444" : "var(--cinema-text-muted)" }}>
-                    {show.desc}
-                  </p>
-                )}
+
               </div>
             </div>
           );
