@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Icon from "@/components/ui/icon";
 
 type Section = "home" | "movies" | "cartoons" | "tv" | "schedule" | "search";
@@ -72,21 +72,84 @@ const TV_CHANNELS: TvChannel[] = [
   { id: 8, name: "Карусель",      emoji: "🎠", currentShow: "Весёлые мультфильмы",   nextShow: "Смешарики",             color: "#EC4899", freq: "8" },
 ];
 
-// ─── Программа передач ────────────────────────────────────
-const SCHEDULE = [
-  { time: "07:00", title: "Доброе утро",           channel: "Первый канал",  duration: 180, type: "Утренняя передача" },
-  { time: "09:00", title: "Весёлые мультфильмы",   channel: "Карусель",      duration: 60,  type: "Мультфильмы" },
-  { time: "10:00", title: "Россия. Кремль. Путин", channel: "Россия 24",     duration: 50,  type: "Документальный" },
-  { time: "11:00", title: "Геройчики: Незваный гость", channel: "Карусель",  duration: 80,  type: "Мультфильм" },
-  { time: "13:00", title: "Вести",                 channel: "Россия 1",      duration: 30,  type: "Новости" },
-  { time: "14:00", title: "Большой балет",         channel: "Россия К",      duration: 120, type: "Культура" },
-  { time: "16:00", title: "Геройчики (1 сезон)",   channel: "Карусель",      duration: 130, type: "Мультсериал" },
-  { time: "18:00", title: "Место происшествия",    channel: "Пятый канал",   duration: 60,  type: "Криминальная хроника" },
-  { time: "19:00", title: "Футбол. Ла Лига",       channel: "Матч ТВ",       duration: 105, type: "Спорт" },
-  { time: "20:00", title: "Вести в 20:00",         channel: "Россия 1",      duration: 40,  type: "Новости" },
-  { time: "21:00", title: "Следствие вели…",       channel: "НТВ",           duration: 60,  type: "Криминальный" },
-  { time: "23:00", title: "Поздние новости",       channel: "Первый канал",  duration: 30,  type: "Новости" },
+// ─── Программа Карусели ────────────────────────────────────
+interface Show {
+  time: string; // "HH:MM"
+  title: string;
+  desc?: string;
+  age: string;
+}
+
+const KARUSEL_26: Show[] = [
+  { time: "05:00", title: "Лунтик", desc: "Прятки — Икота — Отдых — Масло — Нора — Колодец — Маляры — Вешалка — Насолили — Тень — Вики-верт — Картошка — Меч — Симулянт — Шашки — Крылья", age: "0+" },
+  { time: "07:00", title: "С добрым утром, малыши!", desc: "Герои легендарной программы «Спокойной ночи, малыши!» теперь не только укладывают детей спать. Они с лёгкостью разбудят каждого ребёнка в детский сад.", age: "0+" },
+  { time: "07:30", title: "Погода", desc: "Актуальный прогноз погоды от ведущих программы «Спокойной ночи, малыши!»", age: "0+" },
+  { time: "07:35", title: "Бэби Борн", desc: "Ночная сказка принцессы. Часть 2", age: "0+" },
+  { time: "07:40", title: "Царевны", desc: "Урок волшебной ботаники — Любимая игрушка — Наша Даша — Волшебная мастерская — Философский вопрос — Знакомство с Арчи — Шкатулка", age: "0+" },
+  { time: "10:00", title: "Вкусные рисунки. Создай и съешь", desc: "Ведущие Дарья Сагалова и её дочери, Стефания и Милослава будут готовить по рисункам!", age: "0+" },
+  { time: "10:20", title: "Фиксики. Самое время!", desc: "Перьевой перевод — Шахта — Печатная машинка — Молниеотвод — Машинист — Викинги — Ветряная мельница — Скафандр — Артист — Пузырьки — Почка — Патент", age: "0+" },
+  { time: "12:00", title: "Студия красоты", desc: "«Студия красоты» с Катей Долгоруковой — место, где создаются уникальные гармоничные образы для любого случая!", age: "0+" },
+  { time: "12:15", title: "Маша и Медведь", desc: "Колесо дружбы — Три патача — Вишенка на торте — У страха глаза велики — Принцесса и чудовище — Много шума и ничего — Аттракцион — Штангу! Штангу!", age: "0+" },
+  { time: "14:00", title: "У меня лапки", desc: "«У меня лапки» — это программа о домашних животных, их породах, видах, характере и привычках.", age: "0+" },
+  { time: "14:30", title: "Простоквашино", desc: "Старая мента — Усатый нянь — Орех раздора — Фудтрактор — Папина отдушина — Палина мечта — Тушите свет — Дело о пропавшей лопате — Мубемоле", age: "0+" },
+  { time: "16:00", title: "Это супер!", desc: "Тележурнал обо всём самом интересном и весёлом!", age: "0+" },
+  { time: "16:15", title: "Барбоскины", desc: "Кто красивее — Проявить смелость — Немужское дело — День уступок — Шпионские каникулы — Двойной Дружок — Ни копейки не страшно — По закону", age: "0+" },
+  { time: "19:30", title: "Чик-Чирикино", desc: "Клюв и магия — Влюблённый Микс — Дело привычки — Герои и деревья — Быть собой! — За покупками — Вкусная ловушка", age: "0+" },
+  { time: "21:00", title: "Спокойной ночи, малыши!", desc: "Передача «Спокойной ночи, малыши!» — уникальное явление на телевидении. Программа существует с сентября 1964 года. Она никогда не переставала выходить.", age: "0+" },
+  { time: "21:15", title: "Чик-Чирикино", desc: "Квест на курорте — Гнездо кукушки — Канал Василисы — Мамин отпуск — Папа дома — Кресло раздора — Родительское собрание — Монстр в коробке", age: "0+" },
+  { time: "23:00", title: "Дикие Скричеры!", desc: "Катастрофа в Сайберсити", age: "6+" },
+  { time: "23:15", title: "Приключения Пети и Волка", desc: "Дело о Снежной королеве — Дело о Сборище дуь — Дело Сфинкса — Дело о Двойниках — Дело о Свадьбе Русалии — Дело о Древомудрах — Дело о Внутренних", age: "12+" },
+  { time: "02:00", title: "Маша и Медведь", desc: "Осторожно, ремонт! — Хит сезона — Витамин роста — Новая метла — Сладкая жизнь — Фотография 9 из 12", age: "0+" },
+  { time: "02:35", title: "Маша и Медведь. Песенки для малышей", desc: "Если весел ты", age: "0+" },
+  { time: "02:40", title: "Маша и Медведь", desc: "Трудно быть маленьким — Двое на одного — Большое путешествие — Нынче всё наоборот — Учитель танцев — Крик победы — Современное искусство", age: "0+" },
+  { time: "04:05", title: "Маша и Медведь. Песенки для малышей", desc: "На ферме", age: "0+" },
+  { time: "04:10", title: "Маша и Медведь", desc: "Есть контакт — Спокойность, только спокойность — Цирк, да и только — Квартет плюс — Сколько волка ни корми — Звезда с неба", age: "0+" },
 ];
+
+const KARUSEL_27: Show[] = [
+  { time: "05:00", title: "Лунтик", desc: "Звёздочка — Костюмы — Волшебный сироп — Хитрые гусеницы — Отважные путешественники — Кумыры — Не из пугливых — Мост — Самый-самый — Варение", age: "0+" },
+  { time: "07:00", title: "С добрым утром, малыши!", desc: "Герои легендарной программы «Спокойной ночи, малыши!» теперь не только укладывают детей спать. Они с лёгкостью разбудят каждого ребёнка в детский сад.", age: "0+" },
+  { time: "07:25", title: "Погода", desc: "Актуальный прогноз погоды от ведущих программы «Спокойной ночи, малыши!»", age: "0+" },
+  { time: "07:30", title: "Маша и Медведь", desc: "Звезда с неба — Случай на рыбалке — Вот как бывает! — Не цирковое дело! — Вся жизнь — театр — Вокруг света за один час — Что-нибудь вкусненькое — Большой поход — Первая ласточка — Медовый день — Грибной дождь — Супергерои — Крути педали — Калинка-малинка — Лучшая няня на свете — Кто за старшего? — Макароны по-флотски", age: "0+" },
+  { time: "10:15", title: "Супер Крылья. Электрические герои", desc: "Двойники", age: "0+" },
+  { time: "10:30", title: "Робокар Поли и его друзья", desc: "Давайте следовать правилам!", age: "0+" },
+  { time: "10:45", title: "Три кота", desc: "Мастер на все лапы — День рождении Карамельки — Папин видеоблог — Машинка — Арбузный день — Банковская карта Компота — Потерянный динозавр", age: "0+" },
+  { time: "13:15", title: "Диностер", desc: "Город птерозавров", age: "0+" },
+  { time: "13:30", title: "Джи-Джи Бонд: Супергонщик", desc: "Общая цель", age: "6+" },
+  { time: "13:45", title: "Минифорс. Сила динозавров", desc: "Минифорс Триза", age: "6+" },
+  { time: "14:00", title: "Инфинити Надо", desc: "Самый сильный в клане Огне — Король ночных псов", age: "6+" },
+  { time: "14:30", title: "Навигатор. Новости", desc: "Эта программа — путеводитель по самым интересным событиям!", age: "6+" },
+  { time: "14:35", title: "Погода", desc: "Актуальный прогноз погоды от ведущих программы «Спокойной ночи, малыши!»", age: "0+" },
+  { time: "14:40", title: "Барбоскины", desc: "Идеальный пациент — Пицца — Клад — Сальмаганди — Шпинат, шоколад и условный рефлекс — Романс — Курорт — Главное — терпение! — Большие выходные", age: "0+" },
+  { time: "16:40", title: "ЛОЛ Сюрпрайз. Фантазийные эпизоды", desc: "Русалки", age: "6+" },
+  { time: "16:50", title: "Сказочный патруль", desc: "История 45. Сердце часов — История 46. Долгожданная встреча — История 47. Тайны Медузы Горгоны — История 48. Незваный обед — История 49. Новый Визирь", age: "0+" },
+  { time: "19:45", title: "Снежная королева — 2: Перезаморозка", desc: "Продолжение мультфильма «Снежная королева».", age: "0+" },
+  { time: "21:00", title: "Спокойной ночи, малыши!", desc: "Передача «Спокойной ночи, малыши!» — уникальное явление на телевидении.", age: "0+" },
+  { time: "21:15", title: "Лео и Тиг", desc: "Долой пернатых — Подкидыш — Таинственный лес — Пропавшее вдохновение — Морской бой", age: "0+" },
+  { time: "22:15", title: "Тобот. Герои Дэйдо", desc: "Спешим вам на помощь! — Тобот мега шесть, интеграция!", age: "0+" },
+  { time: "22:45", title: "Метал Кард Бот", desc: "Возвращение — Пробуждение силы", age: "6+" },
+  { time: "23:10", title: "Фьюжн Макс", desc: "Спасение малышей", age: "6+" },
+  { time: "23:25", title: "Герои Энвелла", desc: "Летучий корабль — Королевство 4K-Филдор — Руины — Дворец Саламандры — Внешняя стена — Финал. Часть 1 — Финал. Часть 2 — Пауза", age: "6+" },
+  { time: "01:00", title: "Приключения Пети и Волка", desc: "Дело о Мировом древе и дровосеке — Дело об Инерции жизни — Дело Наследного принца — Дело Оборотня — Дело об Эмпатии — Дело в Пушкине — Дело о Клонах", age: "12+" },
+];
+
+// ─── Вспомогательные функции для расписания ──────────────
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function getCurrentShow(shows: Show[]): number {
+  const now = new Date();
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  let idx = -1;
+  for (let i = 0; i < shows.length; i++) {
+    const startMin = timeToMinutes(shows[i].time);
+    const nextMin = i + 1 < shows.length ? timeToMinutes(shows[i + 1].time) : 24 * 60;
+    if (nowMin >= startMin && nowMin < nextMin) { idx = i; break; }
+  }
+  return idx;
+}
 
 // ─── Helpers ──────────────────────────────────────────────
 function AgeBadge({ age }: { age: string }) {
@@ -169,6 +232,140 @@ function SectionTitle({ title, sub }: { title: string; sub?: string }) {
       </h2>
       {sub && <span className="text-xs pb-0.5" style={{ color: "var(--cinema-text-muted)" }}>{sub}</span>}
       <div className="flex-1 h-px ml-1" style={{ background: "var(--cinema-border)" }} />
+    </div>
+  );
+}
+
+// ─── Компонент: живые часы ────────────────────────────────
+function LiveClock() {
+  const [now, setNow] = useState(new Date());
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return (
+    <span style={{ fontFamily: "'Oswald', sans-serif", fontWeight: 700, fontSize: 28, color: "var(--cinema-red)", letterSpacing: "0.05em" }}>
+      {pad(now.getHours())}:{pad(now.getMinutes())}:{pad(now.getSeconds())}
+    </span>
+  );
+}
+
+// ─── Компонент: расписание Карусели ──────────────────────
+function KaruselSchedule() {
+  const [day, setDay] = useState<"26" | "27">("26");
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(new Date()), 10000);
+    return () => clearInterval(id);
+  }, []);
+
+  const shows = day === "26" ? KARUSEL_26 : KARUSEL_27;
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+
+  const currentIdx = (() => {
+    for (let i = 0; i < shows.length; i++) {
+      const startMin = timeToMinutes(shows[i].time);
+      const nextMin = i + 1 < shows.length ? timeToMinutes(shows[i + 1].time) : 24 * 60 + timeToMinutes(shows[0].time);
+      if (nowMin >= startMin && nowMin < nextMin) return i;
+    }
+    return -1;
+  })();
+
+  const todayDate = now.getDate();
+  const activeToday = todayDate === 26 && day === "26" || todayDate === 27 && day === "27";
+
+  const dayNames: Record<string, string> = { "26": "26 апреля, воскресенье", "27": "27 апреля, понедельник" };
+
+  return (
+    <div className="animate-fade-in">
+      {/* Заголовок с часами */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div>
+          <h2 style={{ fontFamily: "'Oswald', sans-serif", color: "#f5f5f5", fontSize: 22, fontWeight: 700 }}>
+            📺 Программа передач — Карусель
+          </h2>
+          <div className="text-sm mt-1" style={{ color: "var(--cinema-text-muted)" }}>{dayNames[day]}</div>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <LiveClock />
+          <div className="text-xs" style={{ color: "var(--cinema-text-muted)" }}>Москва</div>
+        </div>
+      </div>
+
+      {/* Переключатель дней */}
+      <div className="flex gap-2 mb-6">
+        {(["26", "27"] as const).map(d => (
+          <button key={d}
+            onClick={() => setDay(d)}
+            className="px-5 py-2 rounded-xl font-semibold text-sm transition-all duration-200"
+            style={{
+              background: day === d ? "var(--cinema-red)" : "var(--cinema-card)",
+              color: day === d ? "#fff" : "var(--cinema-text-muted)",
+              border: `1px solid ${day === d ? "var(--cinema-red)" : "var(--cinema-border)"}`,
+            }}>
+            {d === "26" ? "Вс, 26 апр" : "Пн, 27 апр"}
+          </button>
+        ))}
+      </div>
+
+      {/* Текущая передача */}
+      {activeToday && currentIdx >= 0 && (
+        <div className="flex items-center gap-3 mb-5 p-3.5 rounded-2xl" style={{ background: "var(--cinema-red-dim)", border: "1px solid var(--cinema-red)" }}>
+          <div className="w-2 h-2 rounded-full animate-pulse shrink-0" style={{ background: "var(--cinema-red)" }} />
+          <span className="text-sm font-semibold" style={{ color: "var(--cinema-red)" }}>
+            Сейчас в эфире: {shows[currentIdx].time} — {shows[currentIdx].title}
+          </span>
+        </div>
+      )}
+
+      {/* Список передач */}
+      <div className="space-y-2">
+        {shows.map((show, i) => {
+          const isNow = activeToday && i === currentIdx;
+          const isPast = activeToday && (() => {
+            const nextMin = i + 1 < shows.length ? timeToMinutes(shows[i + 1].time) : 24 * 60;
+            return nowMin >= nextMin;
+          })();
+          return (
+            <div key={i}
+              className="rounded-2xl flex items-start gap-4 p-4 transition-all duration-200 animate-fade-in"
+              style={{
+                animationDelay: `${i * 20}ms`,
+                background: isNow ? "var(--cinema-red-dim)" : "var(--cinema-card)",
+                border: `1px solid ${isNow ? "var(--cinema-red)" : "var(--cinema-border)"}`,
+                opacity: isPast ? 0.5 : 1,
+              }}>
+              <span className="text-sm font-black w-14 shrink-0 text-center pt-0.5"
+                style={{ color: isNow ? "var(--cinema-red)" : isPast ? "#444" : "#777", fontFamily: "'Oswald', sans-serif", fontSize: 16 }}>
+                {show.time}
+              </span>
+              <div className="w-px shrink-0 mt-1" style={{ height: 20, background: isNow ? "var(--cinema-red)" : "var(--cinema-border)" }} />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-sm" style={{ color: isNow ? "#fff" : isPast ? "#555" : "#e0e0e0" }}>
+                    {show.title}
+                  </span>
+                  <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: "rgba(255,255,255,0.07)", color: "#888", border: "1px solid rgba(255,255,255,0.1)" }}>
+                    {show.age}
+                  </span>
+                  {isNow && (
+                    <span className="text-xs px-2 py-0.5 rounded-full font-bold" style={{ background: "var(--cinema-red)", color: "#fff" }}>
+                      В эфире
+                    </span>
+                  )}
+                </div>
+                {show.desc && (
+                  <p className="text-xs mt-1 leading-relaxed line-clamp-2" style={{ color: isPast ? "#444" : "var(--cinema-text-muted)" }}>
+                    {show.desc}
+                  </p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -433,52 +630,7 @@ export default function Index() {
           )}
 
           {/* ── ПРОГРАММА ПЕРЕДАЧ ── */}
-          {activeSection === "schedule" && (
-            <div className="animate-fade-in">
-              <SectionTitle title="Программа передач" sub="26 апреля 2025" />
-
-              {/* Текущее время */}
-              <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl" style={{ background: "var(--cinema-red-dim)", border: "1px solid var(--cinema-red)" }}>
-                <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "var(--cinema-red)" }} />
-                <span className="text-sm font-semibold" style={{ color: "var(--cinema-red)" }}>Сейчас в эфире — 19:00: Футбол. Ла Лига (Матч ТВ)</span>
-              </div>
-
-              <div className="space-y-2">
-                {SCHEDULE.map((item, i) => {
-                  const isNow = item.time === "19:00";
-                  return (
-                    <div key={i}
-                      className="rounded-2xl flex items-center gap-4 p-4 cursor-pointer transition-all duration-200 animate-fade-in"
-                      style={{
-                        animationDelay: `${i * 35}ms`,
-                        background: isNow ? "var(--cinema-red-dim)" : "var(--cinema-card)",
-                        border: `1px solid ${isNow ? "var(--cinema-red)" : "var(--cinema-border)"}`,
-                      }}>
-                      <span className="text-sm font-black w-14 shrink-0 text-center"
-                        style={{ color: isNow ? "var(--cinema-red)" : "#555", fontFamily: "'Oswald', sans-serif", fontSize: 16 }}>
-                        {item.time}
-                      </span>
-                      <div className="w-px h-8 self-stretch shrink-0" style={{ background: isNow ? "var(--cinema-red)" : "var(--cinema-border)" }} />
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-sm" style={{ color: isNow ? "#fff" : "#e0e0e0" }}>{item.title}</div>
-                        <div className="text-xs mt-0.5" style={{ color: "var(--cinema-text-muted)" }}>
-                          {item.channel} · {item.duration} мин
-                        </div>
-                      </div>
-                      <span className="text-xs px-2.5 py-1 rounded-full shrink-0"
-                        style={{ background: isNow ? "var(--cinema-red)" : "var(--cinema-card-hover)", color: isNow ? "#fff" : "#777", border: isNow ? "none" : "1px solid var(--cinema-border)" }}>
-                        {item.type}
-                      </span>
-                      <button className="w-8 h-8 flex items-center justify-center rounded-lg shrink-0 transition-all hover:scale-110"
-                        style={{ background: isNow ? "var(--cinema-red)" : "var(--cinema-card-hover)", color: isNow ? "#fff" : "#666" }}>
-                        <Icon name="Bell" size={13} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
+          {activeSection === "schedule" && <KaruselSchedule />}
 
           {/* ── ПОИСК ── */}
           {activeSection === "search" && (
