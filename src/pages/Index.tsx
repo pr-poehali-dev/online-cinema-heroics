@@ -582,48 +582,69 @@ export default function Index() {
           )}
 
           {/* ── ТВ-КАНАЛЫ ── */}
-          {activeSection === "tv" && (
-            <div className="animate-fade-in">
-              <SectionTitle title="ТВ-каналы" sub="8 каналов" />
-              <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
-                {TV_CHANNELS.map((ch, i) => (
-                  <div key={ch.id} className="cinema-card rounded-2xl p-5 cursor-pointer animate-fade-in"
-                    style={{ animationDelay: `${i * 55}ms` }}>
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
-                        style={{ background: `${ch.color}18`, border: `1px solid ${ch.color}40` }}>
-                        {ch.emoji}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-bold text-base" style={{ color: "#f0f0f0" }}>{ch.name}</h3>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: ch.color }} />
-                          <span className="text-xs font-medium" style={{ color: ch.color }}>В прямом эфире</span>
+          {activeSection === "tv" && (() => {
+            const now = new Date();
+            const todayShows = now.getDate() === 27 ? KARUSEL_27 : KARUSEL_26;
+            const nowMin = now.getHours() * 60 + now.getMinutes();
+            let karuselCurrent = "—";
+            let karuselNext = "—";
+            for (let i = 0; i < todayShows.length; i++) {
+              const startMin = timeToMinutes(todayShows[i].time);
+              const nextMin = i + 1 < todayShows.length ? timeToMinutes(todayShows[i + 1].time) : 24 * 60;
+              if (nowMin >= startMin && nowMin < nextMin) {
+                karuselCurrent = `${todayShows[i].time} ${todayShows[i].title}`;
+                karuselNext = i + 1 < todayShows.length ? `${todayShows[i + 1].time} ${todayShows[i + 1].title}` : "—";
+                break;
+              }
+            }
+            return (
+              <div className="animate-fade-in">
+                <SectionTitle title="ТВ-каналы" sub="8 каналов" />
+                <div className="grid gap-4" style={{ gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))" }}>
+                  {TV_CHANNELS.map((ch, i) => {
+                    const isKarusel = ch.id === 8;
+                    const currentShow = isKarusel ? karuselCurrent : ch.currentShow;
+                    const nextShow = isKarusel ? karuselNext : ch.nextShow;
+                    return (
+                      <div key={ch.id} className="cinema-card rounded-2xl p-5 cursor-pointer animate-fade-in"
+                        style={{ animationDelay: `${i * 55}ms` }}>
+                        <div className="flex items-center gap-4 mb-4">
+                          <div className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0"
+                            style={{ background: `${ch.color}18`, border: `1px solid ${ch.color}40` }}>
+                            {ch.emoji}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-bold text-base" style={{ color: "#f0f0f0" }}>{ch.name}</h3>
+                            <div className="flex items-center gap-1.5 mt-0.5">
+                              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: ch.color }} />
+                              <span className="text-xs font-medium" style={{ color: ch.color }}>В прямом эфире</span>
+                            </div>
+                          </div>
+                          <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-semibold text-xs whitespace-nowrap"
+                            style={{ background: "var(--cinema-red)", color: "#fff" }}>
+                            <Icon name="Play" size={12} />
+                            Смотреть
+                          </button>
+                        </div>
+                        <div className="space-y-2 pt-3" style={{ borderTop: "1px solid var(--cinema-border)" }}>
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0"
+                              style={{ background: `${ch.color}22`, color: ch.color }}>Сейчас</span>
+                            <span className="text-sm truncate" style={{ color: "#ddd" }}>{currentShow}</span>
+                          </div>
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-xs px-2 py-0.5 rounded-full shrink-0"
+                              style={{ background: "rgba(255,255,255,0.05)", color: "#555" }}>Далее</span>
+                            <span className="text-sm truncate" style={{ color: "#555" }}>{nextShow}</span>
+                          </div>
                         </div>
                       </div>
-                      <button className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-semibold text-xs whitespace-nowrap"
-                        style={{ background: "var(--cinema-red)", color: "#fff" }}>
-                        <Icon name="Play" size={12} />
-                        Смотреть
-                      </button>
-                    </div>
-                    <div className="space-y-2 pt-3" style={{ borderTop: "1px solid var(--cinema-border)" }}>
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xs px-2 py-0.5 rounded-full font-semibold shrink-0"
-                          style={{ background: `${ch.color}22`, color: ch.color }}>Сейчас</span>
-                        <span className="text-sm truncate" style={{ color: "#ddd" }}>{ch.currentShow}</span>
-                      </div>
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-xs px-2 py-0.5 rounded-full shrink-0"
-                          style={{ background: "rgba(255,255,255,0.05)", color: "#555" }}>Далее</span>
-                        <span className="text-sm truncate" style={{ color: "#555" }}>{ch.nextShow}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* ── ПРОГРАММА ПЕРЕДАЧ ── */}
           {activeSection === "schedule" && <KaruselSchedule />}
